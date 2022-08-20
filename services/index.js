@@ -5,7 +5,7 @@ const graphqlAPI = process.env.NEXT_PUBLIC_GRAPHCMS_ENDPOINT;
 export const getPosts = async () => {
   const GET_POSTS = gql `
     query GetPosts {
-      postsConnection {
+      postsConnection (orderBy: publishedAt_DESC) {
         edges {
           node {
             slug
@@ -26,9 +26,6 @@ export const getPosts = async () => {
             categories {
               name
               slug
-            }
-            comments {
-              id
             }
           }
         }
@@ -168,7 +165,7 @@ export const getComments = async (slug) => {
 export const getFeaturedPosts = async () => {
   const GET_FEATURED_POSTS = gql `
     query GetFeaturedPosts () {
-      posts (where: {featured: true}) {
+      posts (where: {featured: true}, orderBy: publishedAt_DESC) {
         author {
           name
           photo {
@@ -187,4 +184,40 @@ export const getFeaturedPosts = async () => {
 
   const result = await request(graphqlAPI, GET_FEATURED_POSTS);
   return result.posts;
+};
+
+
+export const getCategoryPost = async (slug) => {
+  const GET_CATEGORY_POST = gql `
+    query GetCategoryPost($slug: String!) {
+      postsConnection (where: {categories_some: {slug: $slug}}, orderBy: publishedAt_DESC) {
+        edges {
+          node {
+            slug
+            createdAt
+            author {
+              bio
+              name
+              id
+              photo {
+                url
+              }
+            }
+            excerpt
+            title
+            image {
+              url
+            }
+            categories {
+              name
+              slug
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const result = await request(graphqlAPI, GET_CATEGORY_POST, { slug });
+  return result.postsConnection.edges;
 };
