@@ -24,6 +24,9 @@ const Header = () => {
               <span className="md:float-right mt-2 align-middle text-white ml-4 font-semibold cursor-pointer">{category.name}</span>
             </Link>
           ))}
+          <Link href="/">
+            <span className="md:float-right mt-2 align-middle text-white ml-4 font-semibold cursor-pointer">Home</span>
+          </Link>
         </div>
       </div>
     </div>

@@ -27,6 +27,9 @@ export const getPosts = async () => {
               name
               slug
             }
+            comments {
+              id
+            }
           }
         }
       }
@@ -55,7 +58,7 @@ export const getCategories = async () => {
 
 export const getPostDetails = async (slug) => {
   const GET_POST_DETAILS = gql `
-    query GetPostDetails($slug : String!) {
+    query GetPostDetails ($slug : String!) {
       post(where: {slug: $slug}) {
         author {
           bio
@@ -90,7 +93,7 @@ export const getPostDetails = async (slug) => {
 
 export const getRecentPosts = async () => {
   const GET_RECENT_POSTS = gql `
-    query GetPostDetails() {
+    query GetPostDetails () {
       posts (
         orderBy: createdAt_ASC
         last: 3
@@ -112,7 +115,7 @@ export const getRecentPosts = async () => {
 
 export const getSimilarPosts = async (categories, slug) => {
   const GET_SIMILAR_POSTS = gql `
-    query GetPostDetails($slug: String!, $categories: [String!]) {
+    query GetPostDetails ($slug: String!, $categories: [String!]) {
       posts (
         where: {slug_not: $slug, AND: {categories_some: {slug_in: $categories}}}
         last: 3
@@ -132,10 +135,24 @@ export const getSimilarPosts = async (categories, slug) => {
 };
 
 
+export const submitComment = async (obj) => {
+  const result = await fetch('/api/comments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(obj),
+  });
+
+  return result.json();
+};
+
+
 export const getComments = async (slug) => {
-  const GET_COMMENTS = gql`
-    query GetComments($slug:String!) {
-      comments(where: {post: {slug:$slug}}){
+  const GET_COMMENTS = gql `
+    query GetComments ($slug:String!) {
+      comments (where: { post: {slug: $slug} }, stage: DRAFT, orderBy: publishedAt_DESC) {
+        id
         name
         createdAt
         comment
@@ -145,4 +162,29 @@ export const getComments = async (slug) => {
 
   const result = await request(graphqlAPI, GET_COMMENTS, { slug });
   return result.comments;
+};
+
+
+export const getFeaturedPosts = async () => {
+  const GET_FEATURED_POSTS = gql `
+    query GetFeaturedPosts () {
+      posts (where: {featured: true}) {
+        author {
+          name
+          photo {
+            url
+          }
+        }
+        image {
+          url
+        }
+        title
+        slug
+        createdAt
+      }
+    }   
+  `;
+
+  const result = await request(graphqlAPI, GET_FEATURED_POSTS);
+  return result.posts;
 };
